@@ -45,29 +45,60 @@ insert into person (login, password) values ('ivan', '123');
 
 ## REST API
 
+### Регистрация
+```bash
+curl -X POST http://localhost:8080/person/sign-up \
+     -H "Content-Type: application/json" \
+     -d '{"login":"ivan", "password":"123"}'
+```
+
+### Логин в базе
+```bash
+curl -X POST http://localhost:8080/login \
+     -H "Content-Type: application/json" \
+     -d '{"login":"ivan", "password":"123"}' \
+     -i
+```
+#### Пример ответа
+```bash
+HTTP/1.1 200 
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ6dXgiLCJleHAiOjE3NTE3OTc1Njl9.sP7Hn3vH_03zTH75-YHxPcXGwqtdRKmCVjMfapKPzM_yDSjhdniOvs7xr3-zjZUYJlLPGwcFOjM4x2ISTy0Mbg
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Length: 0
+Date: Thu, 26 Jun 2025 10:26:09 GMT
+```
+---
+
+> **Внимание!** Дальнейшие запросы требуют передачи `<JWT_TOKEN>` в заголовке. Получить его можно при логине, см. "Пример ответа".
+
+---
 ### Получить всех пользователей
 ```bash
-curl -i http://localhost:8080/person/
+curl -X GET http://localhost:8080/person/ \
+     -H "Authorization: Bearer <JWT_TOKEN>"
 ```
 ### Получить пользователя по ID
 ```bash
-curl -i http://localhost:8080/person/1
-```
-### Создать нового пользователя
-```bash
-curl -H 'Content-Type: application/json' \
-     -X POST \
-     -d '{"login":"job4j@gmail.com", "password":"123"}' \
-     http://localhost:8080/person/
+curl -X GET http://localhost:8080/person/1 \
+     -H "Authorization: Bearer <JWT_TOKEN>"
 ```
 ### Обновить пользователя
 ```bash
-curl -i -H 'Content-Type: application/json' \
-     -X PUT \
-     -d '{"id":5,"login":"support@job4j.com","password":"123"}' \
-     http://localhost:8080/person/
+curl -X PUT http://localhost:8080/person/ \
+     -H "Authorization: Bearer <JWT_TOKEN>" \
+     -H "Content-Type: application/json" \
+     -d '{"id":1, "login":"updatedUser", "password":"updatedPass"}'
 ```
 ### Удалить пользователя
 ```bash
-curl -i -X DELETE http://localhost:8080/person/5
+curl -X DELETE http://localhost:8080/person/1 \
+     -H "Authorization: Bearer <JWT_TOKEN>"
 ```
