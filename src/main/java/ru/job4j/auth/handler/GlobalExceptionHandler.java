@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.job4j.auth.exception.DuplicateEntityException;
@@ -49,4 +50,21 @@ public class GlobalExceptionHandler {
             put("message", e.getMessage());
         }}));
     }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public void handleValidation(MethodArgumentNotValidException e, HttpServletResponse response) throws IOException {
+        response.setStatus(HttpStatus.BAD_REQUEST.value());
+        response.setContentType("application/json");
+
+        var errors = new HashMap<String, String>();
+        e.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage())
+        );
+
+        response.getWriter().write(objectMapper.writeValueAsString(new HashMap<>() {{
+            put("message", "Validation failed");
+            put("errors", errors);
+        }}));
+    }
+
 }

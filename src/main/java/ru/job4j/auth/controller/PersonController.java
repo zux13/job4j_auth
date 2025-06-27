@@ -1,13 +1,17 @@
 package ru.job4j.auth.controller;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.job4j.auth.dto.PasswordUpdateDto;
+import ru.job4j.auth.dto.PersonDto;
 import ru.job4j.auth.exception.DuplicateEntityException;
 import ru.job4j.auth.exception.EntityNotFoundException;
+import ru.job4j.auth.marker.Operation;
 import ru.job4j.auth.model.Person;
 import ru.job4j.auth.repository.PersonRepository;
 
@@ -33,20 +37,26 @@ public class PersonController {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<?> signUp(@RequestBody Person person) {
-        if (personRepository.findByLogin(person.getLogin()).isPresent()) {
+    public ResponseEntity<?> signUp(@Validated(Operation.OnCreate.class) @RequestBody PersonDto dto) {
+        if (personRepository.findByLogin(dto.getLogin()).isPresent()) {
             throw new DuplicateEntityException("Login already exists");
         }
-        person.setPassword(encoder.encode(person.getPassword()));
+        Person person = new Person();
+        person.setLogin(dto.getLogin());
+        person.setPassword(encoder.encode(dto.getPassword()));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(personRepository.save(person));
     }
 
     @PutMapping("/")
-    public ResponseEntity<Void> update(@RequestBody Person person) {
-        if (person.getId() == 0 || personRepository.findById(person.getId()).isEmpty()) {
+    public ResponseEntity<Void> update(@Validated(Operation.OnUpdate.class) @RequestBody PersonDto dto) {
+        if (personRepository.findById(dto.getId()).isEmpty()) {
             throw new EntityNotFoundException("Cannot update: person not found");
         }
+        Person person = new Person();
+        person.setId(dto.getId());
+        person.setLogin(dto.getLogin());
+        person.setPassword(encoder.encode(dto.getPassword()));
         personRepository.save(person);
         return ResponseEntity.ok().build();
     }
@@ -61,13 +71,11 @@ public class PersonController {
     }
 
     @PatchMapping("/{id}/password")
-    public ResponseEntity<Void> updatePassword(@PathVariable int id, @RequestBody PasswordUpdateDto dto) {
+    public ResponseEntity<Void> updatePassword(@PathVariable int id, @Valid @RequestBody PasswordUpdateDto dto) {
         var person = personRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Person with id " + id + " not found"));
-
         person.setPassword(encoder.encode(dto.getPassword()));
         personRepository.save(person);
-
         return ResponseEntity.ok().build();
     }
 
