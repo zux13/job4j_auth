@@ -102,3 +102,11 @@ curl -X PUT http://localhost:8080/person/ \
 curl -X DELETE http://localhost:8080/person/1 \
      -H "Authorization: Bearer <JWT_TOKEN>"
 ```
+
+### Изменить пароль
+```bash 
+curl -X PATCH http://localhost:8080/person/1/password \
+     -H "Authorization: Bearer <JWT_TOKEN>" \
+     -H "Content-Type: application/json" \
+     -d '{"password":"newSecurePassword"}'
+```

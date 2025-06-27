@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import ru.job4j.auth.dto.PasswordUpdateDto;
 import ru.job4j.auth.exception.DuplicateEntityException;
 import ru.job4j.auth.exception.EntityNotFoundException;
 import ru.job4j.auth.model.Person;
@@ -58,4 +59,16 @@ public class PersonController {
         personRepository.deleteById(id);
         return ResponseEntity.ok().build();
     }
+
+    @PatchMapping("/{id}/password")
+    public ResponseEntity<Void> updatePassword(@PathVariable int id, @RequestBody PasswordUpdateDto dto) {
+        var person = personRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Person with id " + id + " not found"));
+
+        person.setPassword(encoder.encode(dto.getPassword()));
+        personRepository.save(person);
+
+        return ResponseEntity.ok().build();
+    }
+
 }
